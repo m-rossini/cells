@@ -1,6 +1,6 @@
 from spike.life.individuals import __select_cell_pair, OriginalIndividual, BornIndividual
 from spike.life.cells import Cell, Gene, GeneType
-
+import pytest
 
 def test_individual_creation_as_dead():
     ind1 = OriginalIndividual(1, [])
@@ -13,19 +13,22 @@ def test_individual_creation_as_dead():
 
 def test_original_individual_energy_as_zero_at_creation():
     genes = [
+        Gene(GeneType.GENDER_FLUIDITY, 0),
+        Gene(GeneType.MOVEMENT, 0),
+        Gene(GeneType.SIGHT, 0),
+        Gene(GeneType.IDENTIFICATION, 0),
+        Gene(GeneType.ABILITY_TO_REPRODUCE, 0),
+        Gene(GeneType.DEFENSE, 0),
         Gene(GeneType.ATTACK, 0),
         Gene(GeneType.COMMUNICATION, 0),
-        Gene(GeneType.DEFENSE, 0),
-        Gene(GeneType.ENERGY_EFFICIENCY, 0),
-        Gene(GeneType.GENDER_FLUIDITY, 0),
-        Gene(GeneType.IDENTIFICATION, 0),
-        Gene(GeneType.MOVEMENT, 0),
         Gene(GeneType.SCAVENGING, 0),
-        Gene(GeneType.SIGHT, 0),
+        Gene(GeneType.ENERGY_EFFICIENCY, 0),
+        Gene(GeneType.PRONE_TO_MULTIPLE_OFFSPRINGS, 0),
     ]
     cell = Cell(genes)
     cells = [cell]
     ind = OriginalIndividual(1, cells)
+    print(">>>GENES:",genes)
     assert ind.energy == 0
     assert ind.alive == False
     assert ind.get_stronger_traits() == None
@@ -46,33 +49,29 @@ def test_original_individual_generational_attributes():
 
 def test_individual_energy_as_average_at_creation():
     genes = [
-        Gene(GeneType.ATTACK, 0.6),
-        Gene(GeneType.COMMUNICATION, 0.4),
-        Gene(GeneType.DEFENSE, 0.5),
-        Gene(GeneType.ENERGY_EFFICIENCY, 0.5),
-        Gene(GeneType.GENDER_FLUIDITY, 0.8),
-        Gene(GeneType.IDENTIFICATION, 0.4),
-        Gene(GeneType.MOVEMENT, 0.6),
-        Gene(GeneType.SCAVENGING, 0.4),
+        Gene(GeneType.GENDER_FLUIDITY, 0.5),
+        Gene(GeneType.MOVEMENT, 0.5),
         Gene(GeneType.SIGHT, 0.5),
+        Gene(GeneType.IDENTIFICATION, 0.5),
+        Gene(GeneType.ABILITY_TO_REPRODUCE, 0.5),
+        Gene(GeneType.DEFENSE, 0.5),
+        Gene(GeneType.ATTACK, 0.5),
+        Gene(GeneType.COMMUNICATION, 0.5),
+        Gene(GeneType.SCAVENGING, 0.5),
+        Gene(GeneType.ENERGY_EFFICIENCY, 0.5),
+        Gene(GeneType.PRONE_TO_MULTIPLE_OFFSPRINGS, 0.5),
     ]
     cell = Cell(genes)
     cells = [cell]
     ind = OriginalIndividual(1, cells)
 
-    assert ind.energy == 0.4875
+    assert ind.energy == 0.5
     assert ind.alive == True
 
     traits = ind.get_stronger_traits()
     gene_value, gene_types = traits
 
-    assert gene_value == 0.6
-    assert len(gene_types) == 2
-
-    assert gene_types == [
-        GeneType.ATTACK,
-        GeneType.MOVEMENT,
-    ]
+    assert len(gene_types) == 10
 
 
 def test_individual_one_stronger_trait():

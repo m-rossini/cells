@@ -2,7 +2,6 @@ from spike.life.individuals import __calculate_off_springs
 from spike.life.cells import Cell, Gene, GeneType
 import pytest
 
-@pytest.mark.specific_test
 def test_calculate_offsprings():
     c1 = Cell([])
     c1.genes[GeneType.GENDER_FLUIDITY] = Gene(GeneType.GENDER_FLUIDITY,1)

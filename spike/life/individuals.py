@@ -6,13 +6,7 @@ from abc import ABC, abstractmethod
 from typing import override
 
 from spike.life.cells import Cell, Gene, GeneType
-
-MAX_LIFE_IN_CYCLES: int = 100
-MAX_ENERGY_PER_INDIVIDUAL = 1  # 0 Individual is dead, 1 is maxPedro2008@@01
-MIN_VALUE_TO_ABILITY_TO_REPRODUCE = 0.2
-MAX_VALUE_TO_ABILITY__TO_REPRODUCE = 0.7
-MIN_ENERGY_LEVEL_TO_REPRODUCE = 0.15
-MIN_GENRE_FLUIDITY_DISTANCE_FOR_REPRODUCTION = 0.8
+from spike.life.parameters import MAX_VALUE_TO_ABILITY__TO_REPRODUCE, MIN_GENRE_FLUIDITY_DISTANCE_FOR_REPRODUCTION, MIN_VALUE_TO_ABILITY_TO_REPRODUCE
 
 class Individual(ABC):
     def __init__(self, group, cells: [Cell]):
@@ -39,16 +33,8 @@ class Individual(ABC):
     def calculate_initial_energy(self):
         energy = 0
         for cell in self.cells:
-            energy += self.calculate_cell_energy(cell)
+            energy += cell.energy
         return energy
-
-    def calculate_cell_energy(self, cell):
-        values = [
-            gene.gene_value
-            for gene in cell.genes.values()
-            if gene.count_to_energy == True
-        ]
-        return sum(values) / len(values)
 
     def get_stronger_traits(self):
         """
@@ -154,16 +140,9 @@ def __select_cell_pair(p1: [Cell], p2: [Cell]):
 
     return (None, None)
 
-def sigmoid(x, a=0, b=0):
-    """
-    Sigmoid function with adjustable parameters
-    """
-    return 1 / (1 + math.exp(-a * (x - b)))
-
 def __gender_compatibility(fc1: Gene, fc2: Gene):
-    combined_fluidity = fc1.gene_value + fc2.gene_value
-    sigmoid_factor = sigmoid(combined_fluidity, 30, 0)
-    return True if sigmoid_factor >= MIN_GENRE_FLUIDITY_DISTANCE_FOR_REPRODUCTION else False
+    combined_fluidity = abs(fc1.gene_value - fc2.gene_value)
+    return True if combined_fluidity >= MIN_GENRE_FLUIDITY_DISTANCE_FOR_REPRODUCTION else False
 
 
 def __able_to_reproduce(value):

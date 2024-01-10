@@ -1,14 +1,8 @@
-import array as arr
 import random
-
 from enum import Enum
 from typing import List
 
-MIN_RANDOM_GENE_VALUE = 0.3
-MAX_RANDOM_GENE_VALUE = 0.65
-MIN_VALUE_FOR_AFFECTING_GENDER_FLUIDITY = 0.8
-# MAX_LIMIT_FOR_MALE = 0.1
-# MIN_LIMIT_FOR_FEMALE = 0.9
+from spike.life.parameters import MAX_RANDOM_GENE_VALUE, MIN_RANDOM_GENE_VALUE, MIN_VALUE_FOR_AFFECTING_GENDER_FLUIDITY
 
 class GeneType(Enum):
     """
@@ -19,44 +13,46 @@ class GeneType(Enum):
     All these traits are the peak an individual can have. From a certain age forward they will start
         to be less effective. How their values decrease can be spcified by a policy (to be implemented)
     """
+    def __new__(cls, *args, **kwds):
+        value = len(cls.__members__) + 1
+        obj = object.__new__(cls)
+        obj._value_ = value
+        return obj
 
-    GENDER_FLUIDITY = 1  # My Gender. 0-0.1 is male, 0.9-1 is female
-    MOVEMENT = 2  # How fast I can move around
-    SIGHT = 3  # How far I can perceive something
+    def __init__(self, seq, count_to_energy=True):
+        self.seq = seq
+        self.count_to_energy = count_to_energy
+
+    GENDER_FLUIDITY = 1, False  # My Gender. 0-0.1 is male, 0.9-1 is female
+    MOVEMENT = 2, True  # How fast I can move around
+    SIGHT = 3, True  # How far I can perceive something
     # How far I can identify something (this is different for perceiving)
-    IDENTIFICATION = 4
-    ABILITY_TO_REPRODUCE = 5  # How good I am reproducing
-    DEFENSE = 6  # How good I am defending
-    ATTACK = 7  # How good I am attacking
-    COMMUNICATION = 8  # How goo I am communicating
-    SCAVENGING = 9  # How good I am to look and find resources
-    ENERGY_EFFICIENCY = 10  # How efficient I am in using energy
-    PRONE_TO_MULTIPLE_OFFSPRINGS = 11
+    IDENTIFICATION = 4, True
+    ABILITY_TO_REPRODUCE = 5, True  # How good I am reproducing
+    DEFENSE = 6, True  # How good I am defending
+    ATTACK = 7, True  # How good I am attacking
+    COMMUNICATION = 8, True  # How goo I am communicating
+    SCAVENGING = 9, True  # How good I am to look and find resources
+    ENERGY_EFFICIENCY = 10, True  # How efficient I am in using energy
+    PRONE_TO_MULTIPLE_OFFSPRINGS = 11, True
+
 
 gene_type_values = {member for member in GeneType}
+
 
 class Gene:
     def __init__(self, gene_type: GeneType, gene_value: int = -1):
         self.gene_type = gene_type
-        self.count_to_energy = True
         self.affect_gender_fluidity = -1
-        
+
         if gene_type == GeneType.PRONE_TO_MULTIPLE_OFFSPRINGS:
-            self.count_to_energy = False
             self.affect_gender_fluidity = MIN_VALUE_FOR_AFFECTING_GENDER_FLUIDITY
-            self.gene_value = random.uniform(0,1)            
-        if gene_type == GeneType.ABILITY_TO_REPRODUCE:
-            self.gene_value = 0
-            self.count_to_energy = False
-        elif gene_type == GeneType.GENDER_FLUIDITY:
-            self.gene_value = self.fix_gene_value_for_gender(gene_value)
-            self.count_to_energy = False
-        elif gene_value >= 0 and gene_value <= 1:
+
+        if gene_value >= 0 and gene_value <= 1:
             self.gene_value = gene_value
         else:
             self.gene_value = random.uniform(
-                MIN_RANDOM_GENE_VALUE, MAX_RANDOM_GENE_VALUE
-            )
+                MIN_RANDOM_GENE_VALUE, MAX_RANDOM_GENE_VALUE)
 
     def fix_gene_value_for_gender(self, value):
         return value
@@ -77,6 +73,16 @@ class Cell:
             self.genes.append(Gene(gene_type))
 
         self.genes = {gene.gene_type: gene for gene in genes}
+        self.energy = self.__calculate_energy()
+
+    def __calculate_energy(self):
+        values = [
+            gene.gene_value
+            for gene in self.genes.values()
+            if gene.gene_type.count_to_energy == True
+        ]
+        print(self.genes)
+        return sum(values) / len(values)
 
     def __str__(self):
         return f"Genes:<{self.genes}>"
