@@ -1,0 +1,11 @@
+{
+    "image": "python_pygame",
+    // "mounts": [
+    //     "source=/home/rossini/projects_linux/cells,target=/app,type=bind"
+    // ],
+    "customizations": {
+        "vscode": {
+            "extensions": ["ms-python.python"]
+        }
+    }
+}
