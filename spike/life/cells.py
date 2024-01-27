@@ -2,7 +2,8 @@ import random
 from enum import Enum
 from typing import List
 
-from spike.life.parameters import MAX_RANDOM_GENE_VALUE, MIN_RANDOM_GENE_VALUE, MIN_VALUE_FOR_AFFECTING_GENDER_FLUIDITY
+from spike.life.parameters import MAX_RANDOM_GENE_VALUE, MIN_RANDOM_GENE_VALUE
+
 
 class GeneType(Enum):
     """
@@ -19,22 +20,28 @@ class GeneType(Enum):
         obj._value_ = value
         return obj
 
-    def __init__(self, seq, count_to_energy=True):
+    def __init__(self,
+                 seq,
+                 count_to_energy=True,
+                 affect_male_level=1,
+                 affect_female_level=1):
         self.seq = seq
         self.count_to_energy = count_to_energy
 
-    GENDER_FLUIDITY = 1, False  # My Gender. 0-0.1 is male, 0.9-1 is female
-    MOVEMENT = 2, True  # How fast I can move around
-    SIGHT = 3, True  # How far I can perceive something
+    SEX = 0, False, 1, 1 
+    # My Gender fludity how far (0) or close(1) to my sex
+    GENDER_FLUIDITY = 1, False, 1, 1
+    MOVEMENT = 2, True, 1, 1  # How fast I can move around
+    SIGHT = 3, True, 1, 1  # How far I can perceive something
     # How far I can identify something (this is different for perceiving)
-    IDENTIFICATION = 4, True
-    ABILITY_TO_REPRODUCE = 5, True  # How good I am reproducing
-    DEFENSE = 6, True  # How good I am defending
-    ATTACK = 7, True  # How good I am attacking
-    COMMUNICATION = 8, True  # How goo I am communicating
-    SCAVENGING = 9, True  # How good I am to look and find resources
-    ENERGY_EFFICIENCY = 10, True  # How efficient I am in using energy
-    PRONE_TO_MULTIPLE_OFFSPRINGS = 11, True
+    IDENTIFICATION = 4, True, 1, 1
+    ABILITY_TO_REPRODUCE = 5, True, 1, 1  # How good I am reproducing
+    DEFENSE = 6, True, 1, 1  # How good I am defending
+    ATTACK = 7, True, 1, 0.1  # How good I am attacking
+    COMMUNICATION = 8, True, 0.9, 1  # How goo I am communicating
+    SCAVENGING = 9, True, 1, 1  # How good I am to look and find resources
+    ENERGY_EFFICIENCY = 10, True, 1, 1  # How efficient I am in using energy
+    PRONE_TO_MULTIPLE_OFFSPRINGS = 11, True, 0, 1
 
 
 gene_type_values = {member for member in GeneType}
@@ -43,19 +50,12 @@ gene_type_values = {member for member in GeneType}
 class Gene:
     def __init__(self, gene_type: GeneType, gene_value: int = -1):
         self.gene_type = gene_type
-        self.affect_gender_fluidity = -1
-
-        if gene_type == GeneType.PRONE_TO_MULTIPLE_OFFSPRINGS:
-            self.affect_gender_fluidity = MIN_VALUE_FOR_AFFECTING_GENDER_FLUIDITY
 
         if gene_value >= 0 and gene_value <= 1:
             self.gene_value = gene_value
         else:
             self.gene_value = random.uniform(
                 MIN_RANDOM_GENE_VALUE, MAX_RANDOM_GENE_VALUE)
-
-    def fix_gene_value_for_gender(self, value):
-        return value
 
     def __str__(self):
         return f"Type:<{self.gene_type} : {self.gene_value}>"
@@ -75,13 +75,20 @@ class Cell:
         self.genes = {gene.gene_type: gene for gene in genes}
         self.energy = self.__calculate_energy()
 
+        self.traits = self.calculate_traits()
+
+    def calculate_traits(self):
+        return {}
+
+    def update_energy_level(self):
+        self.energy = self.__calculate_energy()
+
     def __calculate_energy(self):
         values = [
             gene.gene_value
             for gene in self.genes.values()
             if gene.gene_type.count_to_energy == True
         ]
-        print(self.genes)
         return sum(values) / len(values)
 
     def __str__(self):

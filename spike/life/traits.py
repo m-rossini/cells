@@ -11,7 +11,9 @@ class Trait(Enum):
         self.seq = seq
         
     REPRODUCTIVE_DRIVE = 1      #Will to reproduce
-    FERTILITY = 2               #How fertile I am
+    
+    #ow fertile I am. Affected by -> Age, Sex, Ability to Reproduce
+    FERTILITY = 2               
     SPEED = 11                  #How fast I move
     AGILITY = 12                #How agile I am
     RESISTENCE = 14             #My resistance
