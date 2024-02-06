@@ -75,11 +75,6 @@ class Cell:
         self.genes = {gene.gene_type: gene for gene in genes}
         self.energy = self.__calculate_energy()
 
-        self.traits = self.calculate_traits()
-
-    def calculate_traits(self):
-        return {}
-
     def update_energy_level(self):
         self.energy = self.__calculate_energy()
 

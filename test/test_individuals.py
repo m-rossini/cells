@@ -120,7 +120,8 @@ def test_original_individual_generation_both_should_be_zero():
     assert (0, 0) == ind1.generation
     assert (0, 0) == ind2.generation
 
-def test_reproduction_should_not_reproduce():
+def test_reproduction_should_not_reproduce_due_to_not_fertility():
+    #TODO Set fertiity to not be reproducible
     genes1 = [
         Gene(GeneType.SEX, 0.6),
     ]
@@ -129,7 +130,7 @@ def test_reproduction_should_not_reproduce():
     ind1 = OriginalIndividual(1, cells1)
 
     genes2 = [
-        Gene(GeneType.ATTACK, 0.6),
+        Gene(GeneType.SEX, 0.6),
     ]
     cell2 = Cell(genes2)
     cells2 = [cell2]

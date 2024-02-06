@@ -20,6 +20,7 @@ class Individual(ABC):
         self.cells = cells
         self.group = group
         self.unique_id = uuid.uuid4()
+
         self.total_alive_cycles = 0
         self.total_dead_cycles = 0
 
@@ -27,6 +28,7 @@ class Individual(ABC):
         self.alive = self.energy > 0
 
         self.total_previous_offspring = 0
+        self.traits = self.__update_traits()
 
     @abstractmethod
     def grand_parents(self):
@@ -49,7 +51,8 @@ class Individual(ABC):
 
         all_genes = [
             gene for cell in self.cells for gene in cell.genes.values()]
-        some_genes = [gene for gene in all_genes if gene.gene_type.count_to_energy == True] 
+        some_genes = [
+            gene for gene in all_genes if gene.gene_type.count_to_energy == True]
         highest_value = max(gene.gene_value for gene in some_genes)
         return (
             highest_value,
@@ -60,7 +63,7 @@ class Individual(ABC):
         for cell in self.cells:
             self.__update_gene(cell)
             self.__update_cell(cell)
-            self.__update_traits(cell)
+            self.traits = self.__update_traits(cell)
             self.__update_individual()
 
     def __update_gene(self, cell):
@@ -76,10 +79,12 @@ class Individual(ABC):
     def __update_cell(self, cell: Cell):
         cell.update_energy_level()
 
-    def __update_traits(self, cell: Cell):
-        self.__update_alive_status(cell)
-        self.__increase_age()
-        self.__update_fertitlity(cell)
+    def __update_traits(self):
+        # TODO Calculate traits
+        results = {}
+        self.traits[Trait.FERTILITY] = self.__update_fertitlity()
+        self.traits[Trait.SPEED] = self.__update_speed()
+        return results
 
     def __increase_age(self):
         if self.alive:
@@ -87,23 +92,23 @@ class Individual(ABC):
         else:
             self.total_dead_cycles += 1
 
-    def __update_alive_status(self, cell):
+    def __update_speed(self):
         pass
 
-    def __update_fertitlity(self, cell: Cell):
-        pass
+    def __update_fertitlity(self):
+        raise Exception("Fertility calculation not implented")
 
-    def __update_individual(self,):
-        self.__calculate_individual_energy_level()
-
+    def __update_individual(self):
+        self.energy = self.__calculate_individual_energy_level()
+        self.alive = self.energy > 0
+        self.total_alive_cycles = self.__increase_age()
 
     def reproduce(self, other_individual):
-        off_spring = self.__merge_parent_genes(other_individual)
-        print(">>>type of", type(off_spring))
+        off_spring = self.__create_born_individual(other_individual)
         self.total_previous_offspring += len(off_spring)
         return []
-    
-    def __merge_parent_genes(self, p2: 'Individual'):
+
+    def __create_born_individual(self, p2: 'Individual'):
         cell1, cell2 = self.__select_cell_pair(self.cells, p2.cells)
         if cell1 is None or cell2 is None:
             return []
@@ -111,21 +116,28 @@ class Individual(ABC):
         num_of_offsprings = self.__calculate_off_springs(
             (self, cell1), (p2, cell2))
 
-        chances_of_identical = 0
-        return self.__create_off_springs(num_of_offsprings, chances_of_identical, p2)
+        # TODO Inject function to calculate probability of equal twins
+        chances_of_identical = random.random()
+        return self.__create_off_springs(num_of_offsprings, chances_of_identical, (cell1, cell2))
 
-    def __create_off_springs(self, num_of_offsprings, chances_of_identical, p2):
+    def __create_off_springs(self, num_of_offsprings, chances_of_identical, cells):
+        cell1, cell2 = cells
+
         results = []
         for _ in range(num_of_offsprings):
+            cells = self.__merge_cells(cell1, cell2)
             results.append()
         print(">>>results", type(results), results)
         return results
-    
+
+    def __merge_cells(cell1, cell2):
+        return None
+
     def __calculate_off_springs(self, ind1, ind2):
         i1: Individual
         i2: Individual
-        cell1 : Cell
-        cell2 : Cell
+        cell1: Cell
+        cell2: Cell
         i1, cell1 = ind1
         i2, cell2 = ind2
 
@@ -147,7 +159,7 @@ class Individual(ABC):
         age_factor = min(1, ind.age / parameter.MAX_POSSIBLE_AGE)
         previous_offspring_factor = 1 / (1 + ind.total_previous_offspring)
         adjusted_offspring = base_offspring * age_factor * previous_offspring_factor
-        
+
         target_offspring = min(max(0, adjusted_offspring), len(
             parameter.MIN_FERTILITY_FOR_REPRODUCTION))
 
@@ -188,7 +200,7 @@ class Individual(ABC):
                     cell2.genes[GeneType.SEX],
                 ):
                     continue
-                
+
                 return (cell1, cell2)
 
         return (None, None)
@@ -207,7 +219,7 @@ class OriginalIndividual(Individual):
 
 class BornIndividual(Individual):
     def __init__(self, group, parents=(None, None)):
-        super().__init__(group, self.__merge_parent_genes(
+        super().__init__(group, self.__create_born_individual(
             parents[0], parents[1]))
 
         super().parents = parents
@@ -223,9 +235,11 @@ def __fluidity_compatibility(fc1: Gene, fc2: Gene):
     combined_fluidity = abs(fc1.gene_value - fc2.gene_value)
     return True if combined_fluidity >= parameter.MIN_GENRE_FLUIDITY_DISTANCE_FOR_REPRODUCTION else False
 
+
 def __sex_compatibility(fc1: Gene, fc2: Gene):
     sex_distance = abs(fc1.gene_value - fc2.gene_value)
     return True if sex_distance >= parameter.MIN_SEX_DISTANCE_FOR_REPRODUCTION else False
+
 
 def able_to_reproduce(ability_to_reproduce, fertility_level):
     return (
